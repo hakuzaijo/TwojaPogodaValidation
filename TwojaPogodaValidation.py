@@ -11,7 +11,7 @@ import unittest, time
 
 '''
 Created by: Marcin Sikorski
-Date: 01.04.2016
+Date: 05.04.2016
 --------------------------------------
 Requirements: Firefox 42.0 or lower (it might not work on firefox 43 and higher)
 -----------------------------------------
@@ -41,34 +41,24 @@ Comments:
 '''
 
 webpage = "http://www.twojapogoda.pl/"
-mapDays = {"mapTommorrow":"3","MapaPojutrze":"4","MapaPoniedzialek":"5",
-       "MapaDzisiaj":"1" }
 
-def weatherResult(day, weatherTemp, temp):
-    if weatherTemp == temp:
-        print('\n ' + day + " temperatura zgadza się" + "\n ................")
-    else:
-        print('\n ' + day + " temperatura NIE ZGADZA SIE" + "\n.............")
-    return
 
-def iconResult(day, iconTodayOnMap, iconTodayInSquare):
-    if iconTodayInSquare.lower() == iconTodayOnMap:
-        print("\n" + day + " pogoda zgadza się" + "\n ................")
-    else:
-        print("\n" + day + "pogoda NIE ZGADZA SIE" + "\n ................")
-    return
-'''
-def tempOnMap():
-    driver.find_element_by_xpath(".//*[@id='box-info-tab3']/div[2]/div[1]/p[2]/span").text \
-    + " " + driver.find_element_by_xpath(".//*[@id='box-info-tab3']/div[" \
-    + "2]/div[1]/p[2]/sup").text + "\n" + square
-'''
 
 class PythonOrgSearch(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Firefox()
         self.actionChains = ActionChains(self.driver)
         self.wait = WebDriverWait(self.driver, 5)
+
+        self.dayOnMap = {'today': 1,
+                    'tommorow': 3,
+                    'dayafter': 4,
+                    'dayafterafter': 5}
+
+        self.dayOnBoxInfo = {'today': 'div[1]/div/',
+                    'tommorow': 'div[2]/div[1]/',
+                    'dayafter': 'div[2]/div[2]/',
+                    'dayafterafter': 'div[2]/div[3]/'}
 
     def findCity(self):
         return self.driver.find_element_by_xpath(
@@ -93,13 +83,13 @@ class PythonOrgSearch(unittest.TestCase):
     def validateTemp(self, mapDayId, boxInfoDayId):
         self.driver.find_element_by_xpath(
             ".//*[@id='box-map-default']/div/div[2]/div[1]/ul/li[" +
-            str(mapDayId) + "]/a").click()
+            str(self.dayOnMap[mapDayId]) + "]/a").click()
         time.sleep(1)
 
-        tempOnMap = self.driver.find_element_by_id( self.findCityId() ).text
+        tempOnMap = self.getTempOnMap()
         print("tempOnMap: " + tempOnMap)
 
-        tempOnBoxInfo = self.getTempOnBoxInfo( boxInfoDayId )
+        tempOnBoxInfo = self.getTempOnBoxInfo( self.dayOnBoxInfo[boxInfoDayId] )
         print("tempOnBoxInfo: " + tempOnBoxInfo)
 
         if( tempOnMap == tempOnBoxInfo ):
@@ -107,11 +97,14 @@ class PythonOrgSearch(unittest.TestCase):
         else:
             return False
 
+    def getTempOnMap(self):
+        return self.driver.find_element_by_id( self.findCityId() ).text
+
     def getTempOnBoxInfo(self, dayId):
             driver = self.driver
             tempOnBoxInfo = driver.find_element_by_xpath(
                 ".//*["
-                "@id='box-info-tab3']/div[2]/div[" + str(dayId) + "]/p["
+                "@id='box-info-tab3']/" + str(dayId) + "/p["
                                                             "2]/span").text \
                 + " " + driver.find_element_by_xpath(".//*[@id='box-info-tab3']/div[" \
                 + "2]/div[1]/p[2]/sup").text + "\n" + self.findCity()
@@ -125,143 +118,10 @@ class PythonOrgSearch(unittest.TestCase):
         driver.maximize_window()
         time.sleep(1)
 
-        #self.onMap = self.findCity()
-        #print(self.onMap)
-
-        assert( self.validateTemp(3, 1) )
-        assert( self.validateTemp(4, 2) )
-        assert( self.validateTemp(5, 3) )
-        #assert( self.validateTemp(1, 1) )
-
-
-
-        return
-
-
-        ###########################################################################################
-
-
-
-        #tempTomorrow = tempOnMap()
-        tempTomorrow = 23
-        print(tempTomorrow)
-
-        weatherResult("Jutro", tomorrowWeather, tempTomorrow)
-
-        iconTomorrow = driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[2]/div[1]/img").get_attribute(
-            "title")
-        print(iconTomorrow.lower())
-
-        iconOnMap = driver.find_element_by_xpath(
-            "//a[@id='" + onMap + "']/img").get_attribute("title")
-        print(iconOnMap)
-
-        iconResult("Jutrzejsza", iconOnMap, iconTomorrow)
-
-        ###########################################################################################
-        MapaPojutrze = driver.find_element_by_xpath(
-            ".//*[@id='box-map-default']/div/div[2]/div[1]/ul/li[4]/a").click()
-        time.sleep(1)
-
-
-
-
-
-        #Temp. pojutrze na mapie
-        tempNaStroniePojutrze = driver.find_element_by_id(onMap)
-        pogodaPojutrze = tempNaStroniePojutrze.text
-        print(pogodaPojutrze)
-
-        #Temp. pojutrze w kwadracie
-        TempPojutrze = self.getTemp(2)
-        '''
-        TempPojutrze = driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[2]/div[2]/p[2]/span").text + " " + driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[2]/div[2]/p[2]/sup").text + "\n" + square
-        print(TempPojutrze)
-'''
-        weatherResult("Pojutrze", pogodaPojutrze, TempPojutrze)
-
-
-        #Ikona z kwadratu pojutrze
-        ikonaPojutrze = driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[2]/div[2]/img").get_attribute(
-            "title")
-        print(ikonaPojutrze.lower())
-
-        #Ikona z mapy pojutrze
-        naStroniePojutrzeIkona = driver.find_element_by_xpath(
-            "//a[@id='" + onMap + "']/img").get_attribute("title")
-        print(naStroniePojutrzeIkona)
-
-        iconResult("Pojutrze", naStroniePojutrzeIkona, ikonaPojutrze)
-
-        ###########################################################################################
-        #kliknij Poniedziałek
-        MapaPoniedzialek = driver.find_element_by_xpath(
-            ".//*[@id='box-map-default']/div/div[2]/div[1]/ul/li[5]/a").click()
-        time.sleep(1)
-
-        #Temp. w poniedzialek na mapie
-        naStroniePoniedzialek = driver.find_element_by_id(onMap)
-        pogodaPopojutrze = naStroniePoniedzialek.text
-        print(pogodaPopojutrze)
-
-        #Temp. w poniedzialek w kwadracie
-        tempPoniedzialek = driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[2]/div[3]/p[2]/span").text + " " + driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[2]/div[3]/p[2]/sup").text + "\n" + square
-        print(tempPoniedzialek)
-
-
-
-        weatherResult("W poniedzialek", pogodaPopojutrze, tempPoniedzialek)
-
-        #Ikona z kwadratu w poniedzialek
-        ikonaPoniedzialek = driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[2]/div[3]/img").get_attribute(
-            "title")
-        print(ikonaPoniedzialek.lower())
-
-        #Ikona z mapy w poniedzialek
-        naStroniePoniedzialekIkona = driver.find_element_by_xpath(
-            "//a[@id='" + onMap + "']/img").get_attribute("title")
-        print(naStroniePoniedzialekIkona)
-
-        iconResult("W poniedzialek", naStroniePoniedzialekIkona, ikonaPoniedzialek)
-
-        ###########################################################################################
-        #kliknij dzisiaj na mapie
-        MapaDzisiaj = driver.find_element_by_xpath(
-            ".//*[@id='box-map-default']/div/div[2]/div[1]/ul/li[1]/a").click()
-        time.sleep(1)
-
-        #temp na mapie dzisiaj
-        tempNaStronieDzis = driver.find_element_by_id(onMap)
-        pogodaDzis = tempNaStronieDzis.text
-        print(pogodaDzis)
-
-        #Temp. w kwadracie dzisiaj
-        TempDzis = driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[1]/div/p[2]/span").text + " " + driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[1]/div/p[2]/sup").text + "\n" + square
-        print(TempDzis)
-
-        weatherResult("Dzis", pogodaDzis, TempDzis)
-
-        #Ikona z kwadratu dzisiaj
-        ikonaDzis = driver.find_element_by_xpath(
-            ".//*[@id='box-info-tab3']/div[1]/img").get_attribute("title")
-        print(ikonaDzis.lower())
-
-        #Ikona z mapy dzisiaj
-        naStronieDzisIkona = driver.find_element_by_xpath(
-            "//a[@id='" + onMap + "']/img").get_attribute("title")
-        print(naStronieDzisIkona)
-
-        iconResult("Dzisiaj ", naStronieDzisIkona, ikonaDzis)
-
+        assert( self.validateTemp('today', 'today'))
+        assert( self.validateTemp('tommorow', 'tommorow'))
+        assert( self.validateTemp('dayafter', 'dayafter'))
+        assert( self.validateTemp('dayafterafter', 'dayafterafter'))
 
     def tearDown(self):
         self.driver.close()
